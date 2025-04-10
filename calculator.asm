@@ -1,10 +1,11 @@
 .data
-    promptFst:	.asciiz "\nEnter the first integer: "		# requires a \n because the previous print is a char which has no implicit \n
-    promptSnd:	.asciiz "Enter the second integer: "		# does not require a \n because the previous print is an int which has implicit \n
-    promptOp: 	.asciiz "Enter an operation (+,-,*,/,^): "	# same here
-    result:    	.asciiz "\nResult: "				# requires a \n because the previous print is a char which does not have an implicit \n
-    continue:	.asciiz "\nContinue? (y/n): "			# requires a \n because the previous print is the result which does not have an implicit \n
-    notOp:	.asciiz "\nInvalid operator, please try again."	# requires a \n because the previous print is a char which does not have an implicit \n
+    promptFst:	.asciiz "\nEnter the first integer: "		
+    promptSnd:	.asciiz "Enter the second integer: "		
+    promptOp: 	.asciiz "Enter an operation (+,-,*,/,^,%): "	
+    result:    	.asciiz "\nResult: "				
+    continue:	.asciiz "\nContinue? (y/n): "			
+    notOp:	.asciiz "\nInvalid operator, please try again"
+    divZero:	.asciiz "\nPlease do not divide or modulo by zero"
     equals:	.asciiz " = "
 
 .text
@@ -26,7 +27,7 @@
         syscall
         move $s1,$v0
         
-	#load operation character into $s2
+	# load operation character into $s2
         la $a0,promptOp
         li $v0,4
         syscall
@@ -44,17 +45,14 @@
     	beq $s2,$t0,multit
     	li $t0,47		# ascii value for /
     	beq $s2,$t0,divit
+    	li $t0,37		# ascii value for %
+    	beq $s2,$t0,modit	
     	li $t0,94		# ascii value for ^
     	beq $s2,$t0,expit
-	j retry
+    	li $t0,55357		# unicode value for 💯
+    	beq $s2,$t0,percit
+	j opError
                 
-    # if the operator is not an option, print an error and prompt for input again
-    retry:
-    	la $a0,notOp
-    	li $v0,4
-    	syscall
-    	j IO
-        
     addit:
         add $s3,$s0,$s1
         j print
@@ -69,9 +67,15 @@
         j print
         
     divit:
+       	beq $s1,$zero,zeroError
         div $s0,$s1
         mflo $s3
         j print
+        
+    modit:
+       	beq $s1,$zero,zeroError
+    	rem $s3,$s0,$s1
+    	j print
     
     # does not work with really large outputs, max output is still only 32 bits
     expit:
@@ -83,6 +87,29 @@
             mflo $s3
             addi $t0,$t0,1
             j loop
+            
+    # for first and second integers x and y, this returns x percent of y, truncated to the nearest integer
+    percit:
+        mult $s0,$s1
+        mflo $t2
+    	li $t0,100
+        div $t2,$t0
+        mflo $s3
+        j print    	
+            
+    # print an error if the input is not a valid operation
+    opError:
+    	la $a0,notOp
+    	li $v0,4
+    	syscall
+    	j IO
+                    
+    # print an error if the user tries to divide or modulo by zero
+    zeroError:
+    	la $a0,divZero
+    	li $v0,4
+    	syscall
+    	j IO
         
     # formats the print statement all fancy, assumes the output is stored in s3
     print:
@@ -113,10 +140,8 @@
         syscall
         li $v0,12
         syscall
-        li $t0,121		# ascii value for y
-        beq $v0,$t0,IO
-        li $t0,89		# ascii value for Y
-        beq $v0,$t0,IO		
+        li $t0,121	# ascii value for y
+        beq $v0,$t0,IO	
         j exit
        
     # exit the program cleanly
