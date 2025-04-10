@@ -1,2 +1,2 @@
 # MIPS-Calculator
-A calculator in MIPS
+A calculator in MIPS.
