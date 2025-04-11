@@ -49,35 +49,38 @@
     	beq $s2,$t0,modit	
     	li $t0,94		# ascii value for ^
     	beq $s2,$t0,expit
-    	li $t0,55357		# unicode value for 💯
-    	beq $s2,$t0,percit
 	j opError
-                
+    
+    # handle addition            
     addit:
         add $s3,$s0,$s1
         j print
         
+    # handle subtraction
     subit:
         sub $s3,$s0,$s1
         j print
         
+    # handle multiplication
     multit:
         mult $s0,$s1
         mflo $s3
         j print
         
+    # handle division
     divit:
        	beq $s1,$zero,zeroError
         div $s0,$s1
         mflo $s3
         j print
         
+    # handle modulo
     modit:
        	beq $s1,$zero,zeroError
     	rem $s3,$s0,$s1
     	j print
     
-    # does not work with really large outputs, max output is still only 32 bits
+    # handle exponents
     expit:
     	li $t0,1
     	move $s3,$s0
@@ -87,16 +90,7 @@
             mflo $s3
             addi $t0,$t0,1
             j loop
-            
-    # for first and second integers x and y, this returns x percent of y, truncated to the nearest integer
-    percit:
-        mult $s0,$s1
-        mflo $t2
-    	li $t0,100
-        div $t2,$t0
-        mflo $s3
-        j print    	
-            
+        
     # print an error if the input is not a valid operation
     opError:
     	la $a0,notOp
@@ -132,7 +126,7 @@
     	li $v0,1
     	syscall
 	j check
-    	
+	
     # check whether the user wants to continue the program
     check:
     	la $a0,continue
@@ -140,7 +134,7 @@
         syscall
         li $v0,12
         syscall
-        li $t0,121	# ascii value for y
+        li $t0,121		# ascii value for y
         beq $v0,$t0,IO	
         j exit
        
