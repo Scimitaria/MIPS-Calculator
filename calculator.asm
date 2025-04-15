@@ -1,11 +1,12 @@
 .data
     promptFst:	.asciiz "\nEnter the first integer: "		
     promptSnd:	.asciiz "Enter the second integer: "		
-    promptOp: 	.asciiz "Enter an operation (+,-,*,/,^,%): "	
+    promptOp: 	.asciiz "Enter an operation (+,-,*,/,^,%,g): "	
     result:    	.asciiz "\nResult: "				
     continue:	.asciiz "\nContinue? (y/n): "			
     notOp:	.asciiz "\nInvalid operator, please try again"
     divZero:	.asciiz "\nPlease do not divide or modulo by zero"
+    gcd:	.asciiz "gcd("
     equals:	.asciiz " = "
 
 .text
@@ -49,7 +50,9 @@
     	beq $s2,$t0,modit	
     	li $t0,94		# ascii value for ^
     	beq $s2,$t0,expit
-	j opError
+    	li $t0,103		# ascii value for g (used for gcd)
+    	beq $s2,$t0,gcdit
+   	j opError
     
     # handle addition            
     addit:
@@ -90,7 +93,40 @@
             mflo $s3
             addi $t0,$t0,1
             j loop
-        
+    
+    # handle gcd
+    gcdit:
+        # put the larger input integer into t0 and the smaller into t1
+    	blt $s0,$s1,lt
+    	gt:
+    	    move $t0,$s0
+    	    move $t1,$s1
+    	    j zeroCheck
+    	lt:
+    	    move $t0,$s1
+    	    move $t1,$s0
+    	    
+    	# handle the zero cases
+    	zeroCheck:
+    	    beq $t0,$zero,negOther
+    	    beq $t1,$zero,retOther
+    	    
+    	# do the gcd calculations
+    	gcdLoop:
+    	    rem $t2,$t0,$t1
+	    beq $t2,$zero,gcdPrint
+	    move $t0,$t1
+	    move $t1,$t2
+	    j gcdLoop
+	
+	# handle the zero cases
+	negOther:
+	    sub $t1,$zero,$t1
+	    j gcdPrint
+	retOther:
+	    move $t1,$t0
+	    j gcdPrint
+
     # print an error if the input is not a valid operation
     opError:
     	la $a0,notOp
@@ -110,30 +146,74 @@
      	la $a0,result
     	li $v0,4
     	syscall
+    	
     	move $a0,$s0
      	li $v0,1
     	syscall
+    	
      	move $a0,$s2
      	li $v0,11
     	syscall
+    	
     	move $a0,$s1
      	li $v0,1
     	syscall
+    	
     	la $a0,equals
      	li $v0,4
-    	syscall   	
+    	syscall   
+    		
     	move $a0,$s3
     	li $v0,1
     	syscall
+    	
 	j check
-	
+	    
+    # print function for the gcd operation, assumes result is in t1
+    gcdPrint:
+        la $a0,result
+    	li $v0,4
+    	syscall
+    	
+    	la $a0,gcd
+    	li $v0,4
+    	syscall
+    	
+    	move $a0,$s0
+     	li $v0,1
+    	syscall
+    	
+    	li $a0,44		# ascii value for ,
+    	li $v0,11
+    	syscall
+    	
+    	move $a0,$s1
+     	li $v0,1
+    	syscall
+    	
+    	li $a0,41		# ascii value for )
+    	li $v0,11
+    	syscall
+    	
+    	la $a0,equals
+     	li $v0,4
+    	syscall 
+    	  	
+    	move $a0,$t1
+    	li $v0,1
+    	syscall
+    	
+	j check 
+		
     # check whether the user wants to continue the program
     check:
     	la $a0,continue
         li $v0,4
         syscall
+        
         li $v0,12
         syscall
+        
         li $t0,121		# ascii value for y
         beq $v0,$t0,IO	
         j exit
