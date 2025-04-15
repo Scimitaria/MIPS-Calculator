@@ -120,13 +120,13 @@
 	    move $t1,$t2
 	    j gcdLoop
 	
-	# handle the zero cases
-	negOther:
-	    sub $t1,$zero,$t1
-	    j gcdPrint
-	retOther:
-	    move $t1,$t0
-	    j gcdPrint
+        # handle the zero cases
+        negOther:
+            sub $t1,$zero,$t1
+            j gcdPrint
+        retOther:
+            move $t1,$t0
+            j gcdPrint
 
     # print an error if the input is not a valid operation
     opError:
