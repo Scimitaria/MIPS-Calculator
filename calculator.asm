@@ -2,12 +2,13 @@
     promptFst:	.asciiz "\nEnter the first integer: "		
     promptSnd:	.asciiz "Enter the second integer: "		
     promptOp: 	.asciiz "Enter an operation (+,-,*,/,^,%,g): "	
-    result:    	.asciiz "\nResult: "				
     continue:	.asciiz "\nContinue? (y/n): "			
-    notOp:	.asciiz "\nInvalid operator, please try again"
+    notOp:	    .asciiz "\nInvalid operator, please try again"
     divZero:	.asciiz "\nPlease do not divide or modulo by zero"
-    gcd:	.asciiz "gcd("
-    equals:	.asciiz " = "
+
+    result:    	.asciiz "\nResult: "				
+    gcd:	    .asciiz "gcd("
+    equals:	    .asciiz " = "
 
 .text
     # handle the IO logic
