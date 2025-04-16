@@ -86,6 +86,7 @@
     
     # handle exponents
     expit:
+    	beq $s1,$zero,retOne
     	li $t0,1
     	move $s3,$s0
     	loop:
@@ -94,6 +95,9 @@
             mflo $s3
             addi $t0,$t0,1
             j loop
+        retOne:
+            li $s3,1
+            j print
     
     # handle gcd
     gcdit:
